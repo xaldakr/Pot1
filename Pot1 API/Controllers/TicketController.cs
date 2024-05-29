@@ -1,6 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Firebase.Auth;
+using Firebase.Storage;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 using Pot1_API.Models;
+using Pot1_API.Services;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Pot1_API.Controllers
@@ -10,10 +15,11 @@ namespace Pot1_API.Controllers
     public class TicketController : Controller
     {
         private readonly Pot1Context _Contexto;
-
-        public TicketController(Pot1Context Contexto)
+        private IConfiguration _configuration;
+        public TicketController(Pot1Context Contexto, IConfiguration configuration)
         {
             _Contexto = Contexto;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -319,6 +325,90 @@ namespace Pot1_API.Controllers
 
             return Ok(ticketDetail);
         }
+        [HttpPost]
+        [Route("CrearTicket")]
+        public async Task<IActionResult> CrearTicket()
+        {
+            var form = await Request.ReadFormAsync();
+
+            // Obtener los datos del form
+            string descripcion = form["descripcion"];
+            string servicio = form["servicio"];
+            string estado = "CREADO";
+            string prioridad = form["prioridad"];
+            int id_cliente = int.Parse(form["id_cliente"]);
+            int? id_encargado = null;
+
+            // Obtener el archivo (si hay alguno)
+            IFormFile archivo = form.Files.FirstOrDefault();
+
+            // Verificar si el archivo fue enviado
+            bool archivoEnviado = archivo != null;
+            string urlArchivoCargado = "";
+            //Si fue enviado, hacer lo de firebase
+            if(archivoEnviado) {
+                //Datos de FB
+                try
+                {
+                    Stream archivoASubir = archivo.OpenReadStream();
+                    string emailFB = "pot1tickets@gmail.com";
+                    string claveFB = "merequetengue";
+                    string rutaFB = "pot1-tickets.appspot.com";
+                    string ApiKeyFB = "AIzaSyApIl4UPhpZWOa8xchSMAP5ZjbCTwppF6I";
+
+                    var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKeyFB));
+                    var autentificarFB = await auth.SignInWithEmailAndPasswordAsync(emailFB, claveFB);
+
+                    var cancellation = new CancellationTokenSource();
+                    var tokenUser = autentificarFB.FirebaseToken;
+
+                    var tareaCargarArchivo = new FirebaseStorage(rutaFB, new FirebaseStorageOptions
+                          {
+                           AuthTokenAsyncFactory = () => Task.FromResult(tokenUser), ThrowOnCancel = true
+                          }).Child("Archivos")
+                          .Child(archivo.FileName)
+                          .PutAsync(archivoASubir, cancellation.Token);
+                    var archivoCargado = await tareaCargarArchivo;
+
+                    urlArchivoCargado = archivoCargado.ToString();
+
+                } catch (Exception ex)
+                {
+                    archivoEnviado = false;
+                    urlArchivoCargado = "";
+                }
+                
+            }
+            var nuevoTicket = new Ticket
+            {
+                estado = estado,
+                descripcion = descripcion,
+                prioridad = prioridad,
+                servicio = servicio,
+                id_cliente = id_cliente,
+                id_encargado = id_encargado,
+            };
+            _Contexto.Tickets.Add(nuevoTicket);
+            _Contexto.SaveChanges();
+
+            if (!urlArchivoCargado.IsNullOrEmpty())
+            {
+                var nuevoArchivo = new Archivo
+                {
+                    url = urlArchivoCargado,
+                    id_ticket = nuevoTicket.id_ticket,
+                };
+                _Contexto.Archivos.Add(nuevoArchivo);
+                _Contexto.SaveChanges();
+            }
+            string correouser = (from u in _Contexto.Usuarios where u.id_usuario == id_cliente select u.email).FirstOrDefault();
+
+            correo enviarconfirmacion = new correo(_configuration);
+            enviarconfirmacion.EnviarTicketCorreo(correouser, nuevoTicket.id_ticket, nuevoTicket.servicio, nuevoTicket.descripcion);
+
+            return Ok(new {id_ticket = nuevoTicket.id_ticket}); 
+        }
+
 
     }
 }

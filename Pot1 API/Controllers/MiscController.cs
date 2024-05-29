@@ -34,6 +34,16 @@ namespace Pot1_API.Controllers
             var role = (from r in _Contexto.Roles select r).ToList();
             return Ok(role);
         }
+        [HttpGet]
+        [Route("ObtenerPrioridades")]
+        public IActionResult GetPrios()
+        {
+            string[] prios =
+            {
+                "BAJA", "NORMAL", "IMPORTANTE", "CRÍTICA"
+            };
+            return Ok(prios);
+        }
     }
 
 }
