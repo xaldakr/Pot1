@@ -9,6 +9,8 @@ namespace Pot1_API.Controllers
     {
         private readonly Pot1Context _Contexto;
 
+        
+
         public MiscController(Pot1Context Contexto)
         {
             _Contexto = Contexto;
@@ -24,6 +26,13 @@ namespace Pot1_API.Controllers
                 "RESUELTO"
             };
             return Ok(estados);
+        }
+        [HttpGet]
+        [Route("ObtenerRoles")]
+        public IActionResult GetRoles()
+        {
+            var role = (from r in _Contexto.Roles select r).ToList();
+            return Ok(role);
         }
     }
 

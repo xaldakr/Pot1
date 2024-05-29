@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 using Pot1_API.Models;
+using Pot1_API.Services;
+using System.Text.RegularExpressions;
 
 namespace Pot1_API.Controllers
 {
@@ -10,10 +13,11 @@ namespace Pot1_API.Controllers
     public class UsuariosController : Controller
     {
         private readonly Pot1Context _Contexto;
-
-        public UsuariosController(Pot1Context Contexto)
+        private IConfiguration _configuration;
+        public UsuariosController(Pot1Context Contexto, IConfiguration configuration)
         {
             _Contexto = Contexto;
+            _configuration = configuration;
         }
         [HttpGet]
         [Route("ObtenerDash")]
@@ -112,6 +116,149 @@ namespace Pot1_API.Controllers
                 return NotFound("No se han encontrado datos");
             }
             return Ok(datologin);
+        }
+        /*Modelo de API pal post y put
+        POST /api/Usuarios/CrearUsuario
+            {
+                "Nombre": "Carlos",
+                "Apellido": "Fuentes",
+                "Telefono": "2475-3465",
+                "Email": "carlosfue@gmail.com",
+                "Contrasena": "2fl23q23l5",
+                "TelContacto": "2345-2351",
+                "IdRol": 1
+            }
+        */
+        [HttpPost]
+        [Route("CrearUsuario")]
+        public IActionResult CrearUsuario([FromBody] JObject usuarioJson)
+        {
+            // Extraer los datos del JObject
+            string nombre = usuarioJson.Value<string>("Nombre");
+            string apellido = usuarioJson.Value<string>("Apellido");
+            string telefono = usuarioJson.Value<string>("Telefono");
+            string email = usuarioJson.Value<string>("Email");
+            string contrasena = usuarioJson.Value<string>("Contrasena");
+            string telContacto = usuarioJson.Value<string>("TelContacto");
+            int idRol = usuarioJson.Value<int>("IdRol");
+
+            // Validar formato del correo
+            if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            {
+                return BadRequest("El correo electrónico no tiene un formato válido.");
+            }
+
+            // Validar formato del teléfono y del teléfono de contacto
+            if (!Regex.IsMatch(telefono, @"^\d{4}-\d{4}$") || !Regex.IsMatch(telContacto, @"^\d{4}-\d{4}$"))
+            {
+                return BadRequest("Los números de teléfono deben tener el formato ####-####.");
+            }
+
+            // Validar que el teléfono y el teléfono de contacto no sean iguales
+            if (telefono == telContacto)
+            {
+                return BadRequest("El teléfono de contacto no puede ser igual al teléfono principal.");
+            }
+
+            // Verificar la capacidad del rol
+            var rol = _Contexto.Roles.Include(r => r.tipo_rol).FirstOrDefault(r => r.id_rol == idRol);
+            if (rol == null)
+            {
+                return NotFound("El rol especificado no existe.");
+            }
+
+            int cantidadUsuariosConRol = _Contexto.Usuarios.Count(u => u.id_rol== idRol);
+            if (cantidadUsuariosConRol >= rol.capacidad)
+            {
+                return BadRequest("La capacidad del rol ha sido alcanzada.");
+            }
+
+            // Crear el nuevo usuario
+            var nuevoUsuario = new Usuario
+            {
+                nombre = nombre,
+                apellido = apellido,
+                telefono = telefono,
+                email = email,
+                contrasena = contrasena,
+                tel_contacto = telContacto,
+                id_rol = idRol
+            };
+
+            _Contexto.Usuarios.Add(nuevoUsuario);
+            _Contexto.SaveChanges();
+
+            correo enviarbienvenida = new correo(_configuration);
+            enviarbienvenida.EnviarBienvenidaUsuarioCorreo(email, rol.nombre, nombre, apellido, telefono, telContacto, email, contrasena);
+
+            return Ok("Usuario creado exitosamente.");
+        }
+        [HttpPut]
+        [Route("EditarUsuario/{id_usuario}")]
+        public IActionResult EditarUsuario(int id_usuario, [FromBody] JObject usuarioJson)
+        {
+            // Extraer los datos del JObject
+            string nombre = usuarioJson.Value<string>("Nombre");
+            string apellido = usuarioJson.Value<string>("Apellido");
+            string telefono = usuarioJson.Value<string>("Telefono");
+            string email = usuarioJson.Value<string>("Email");
+            string contrasena = usuarioJson.Value<string>("Contrasena");
+            string telContacto = usuarioJson.Value<string>("TelContacto");
+            int idRol = usuarioJson.Value<int>("IdRol");
+
+            // Validar formato del correo
+            if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            {
+                return BadRequest("El correo electrónico no tiene un formato válido.");
+            }
+
+            // Validar formato del teléfono y del teléfono de contacto
+            if (!Regex.IsMatch(telefono, @"^\d{4}-\d{4}$") || !Regex.IsMatch(telContacto, @"^\d{4}-\d{4}$"))
+            {
+                return BadRequest("Los números de teléfono deben tener el formato ####-####.");
+            }
+
+            // Validar que el teléfono y el teléfono de contacto no sean iguales
+            if (telefono == telContacto)
+            {
+                return BadRequest("El teléfono de contacto no puede ser igual al teléfono principal.");
+            }
+
+            // Verificar la capacidad del rol
+            var rol = _Contexto.Roles.Include(r => r.tipo_rol).FirstOrDefault(r => r.id_rol == idRol);
+            if (rol == null)
+            {
+                return NotFound("El rol especificado no existe.");
+            }
+
+            int cantidadUsuariosConRol = _Contexto.Usuarios.Count(u => u.id_rol == idRol);
+            var usuarioExistente = _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == id_usuario);
+            if (usuarioExistente == null)
+            {
+                return NotFound("El usuario especificado no existe.");
+            }
+
+            // Si el usuario ya tiene el rol, no incrementar el conteo
+            if (usuarioExistente.id_rol != idRol && cantidadUsuariosConRol >= rol.capacidad)
+            {
+                return BadRequest("La capacidad del rol ha sido alcanzada.");
+            }
+
+            // Actualizar el usuario existente
+            usuarioExistente.nombre = nombre;
+            usuarioExistente.apellido = apellido;
+            usuarioExistente.telefono = telefono;
+            usuarioExistente.email = email;
+            usuarioExistente.contrasena = contrasena;
+            usuarioExistente.tel_contacto = telContacto;
+            usuarioExistente.id_rol = idRol;
+
+            _Contexto.SaveChanges();
+
+            correo enviarbcambio = new correo(_configuration);
+            enviarbcambio.EnviarCambioDatosIngresoCorreo(email, rol.nombre, nombre, apellido, telefono, telContacto, email, contrasena);
+
+            return Ok("Usuario actualizado exitosamente.");
         }
     }
 }
