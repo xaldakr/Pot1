@@ -40,9 +40,9 @@ namespace Pot1_API.Services
                 Console.WriteLine(ex.Message);
             }
         }
-        public void EnviarTicketCorreo(string destinatario, string asunto, int id, string servicio, string descripcion)
+        public void EnviarTicketCorreo(string destinatario, int id, string servicio, string descripcion)
         {
-            string asunto = ""
+            string asunto = "Ticket Creado con id "+ id;
             // Crear el cuerpo del correo en formato HTML
             string cuerpo = $@"
                 <html>
