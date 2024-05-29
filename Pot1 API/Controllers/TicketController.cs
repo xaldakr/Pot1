@@ -1,6 +1,7 @@
 ﻿using Firebase.Auth;
 using Firebase.Storage;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
@@ -407,6 +408,68 @@ namespace Pot1_API.Controllers
             enviarconfirmacion.EnviarTicketCorreo(correouser, nuevoTicket.id_ticket, nuevoTicket.servicio, nuevoTicket.descripcion);
 
             return Ok(new {id_ticket = nuevoTicket.id_ticket}); 
+        }
+        [HttpPut]
+        [Route("EditarTicket/{id_ticket}")]
+        public IActionResult EditarTicket(int id_ticket, [FromBody] JObject ticketJson)
+        {
+            string nuevoEstado = ticketJson.Value<string>("estado");
+            int idEjecutor = ticketJson.Value<int>("id");
+
+            var estadosValidos = new List<string> { "CREADO", "ASIGNADO", "EN ESPERA DE INFORMACIÓN", "EN RESOLUCIÓN", "RESUELTO" };
+            if (!estadosValidos.Contains(nuevoEstado))
+            {
+                return BadRequest("Estado no válido.");
+            }
+
+            // Obtener el ticket de la base de datos
+            var ticket = _Contexto.Tickets.FirstOrDefault(t => t.id_ticket == id_ticket);
+            if (ticket == null)
+            {
+                return NotFound("Ticket no encontrado.");
+            }
+
+            // Verificar si el id_ejecutor es el encargado del ticket o un administrador
+            var usuarioEjecutor = _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == idEjecutor);
+            if (usuarioEjecutor == null)
+            {
+                return BadRequest("Usuario ejecutor no encontrado.");
+            }
+
+            bool esEncargado = ticket.id_encargado == idEjecutor;
+            bool esAdministrador = usuarioEjecutor.id_rol == 3;
+
+            if (!esEncargado && !esAdministrador)
+            {
+                return Forbid("No tienes permisos para editar este ticket.");
+            }
+
+            // Verificar si el ticket ya está cerrado
+            if (ticket.estado == "RESUELTO")
+            {
+                return BadRequest("El ticket ya está cerrado.");
+            }
+
+            // Si el nuevo estado es RESUELTO, verificar que todas las tareas estén completadas
+            if (nuevoEstado == "RESUELTO")
+            {
+                var tareasIncompletas = _Contexto.Tareas.Any(t => t.id_ticket == id_ticket && !t.completada);
+                if (tareasIncompletas)
+                {
+                    return BadRequest("No se puede resolver el ticket porque hay tareas incompletas.");
+                }
+            }
+
+            // Actualizar el estado del ticket
+            ticket.estado = nuevoEstado;
+            _Contexto.SaveChanges();
+
+            if (nuevoEstado == "RESUELTO")
+            {
+
+            }
+
+            return Ok("Estado del ticket actualizado exitosamente.");
         }
 
 

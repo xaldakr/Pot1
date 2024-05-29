@@ -47,7 +47,7 @@ namespace Pot1_API.Controllers
         }
         [HttpGet]
         [Route("ObtenerUsus/{tipo}")]
-        public IActionResult GetUsers(int tipo, [FromQuery] string busqueda) {
+        public IActionResult GetUsers(int tipo, [FromQuery] string busqueda = "") {
             if (busqueda == null)
             {
                 busqueda = "";
@@ -76,6 +76,45 @@ namespace Pot1_API.Controllers
                     return Ok(usuarios);
                 }
             }else
+            {
+                return BadRequest("Envie un parametro válido");
+            }
+
+        }
+        [Route("ObtenerTecnicos")]
+        public IActionResult GetUsers([FromQuery] string busqueda = "")
+        {
+            if (busqueda == null)
+            {
+                busqueda = "";
+            }
+
+            //Tipo debe ser dependiendo al rol que se esté agarrando, es decir, se debe comprobar que exista en una lista
+            var roles = (from r in _Contexto.Roles
+                         select r.tipo_rol).ToList();
+            if (roles.Contains(2))
+            {
+                var usuarios = (from u in _Contexto.Usuarios
+                                join r in _Contexto.Roles
+                                on u.id_rol equals r.id_rol
+                                where r.tipo_rol == 2 && u.email.Contains(busqueda)
+                                select new
+                                {
+                                    id_usuario = u.id_usuario,
+                                    nombre = u.nombre + " " + u.apellido,
+                                    email = u.email,
+                                    telefono = u.telefono
+                                }).OrderByDescending(res => res.nombre).ToList();
+                if (usuarios.Count == 0)
+                {
+                    return NotFound("No se han encontrado usuarios");
+                }
+                else
+                {
+                    return Ok(usuarios);
+                }
+            }
+            else
             {
                 return BadRequest("Envie un parametro válido");
             }
