@@ -464,9 +464,12 @@ namespace Pot1_API.Controllers
             ticket.estado = nuevoEstado;
             _Contexto.SaveChanges();
 
+            //var usuario = (from t in _Contexto.Tickets 
+            //               join u in _Contexto.Usuarios on )
+            correo enviocorreo = new correo(_configuration);
             if (nuevoEstado == "RESUELTO")
             {
-
+                //enviocorreo.EnviarCambioEstadoTicketCorreo()
             }
 
             return Ok("Estado del ticket actualizado exitosamente.");
