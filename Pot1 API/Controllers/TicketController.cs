@@ -392,6 +392,7 @@ namespace Pot1_API.Controllers
             string estado = "CREADO";
             string prioridad = form["prioridad"];
             int id_cliente = int.Parse(form["id_cliente"]);
+            DateTime fecha = DateTime.Now;
             int? id_encargado = null;
 
             // Obtener el archivo (si hay alguno)
@@ -440,6 +441,7 @@ namespace Pot1_API.Controllers
                 descripcion = descripcion,
                 prioridad = prioridad,
                 servicio = servicio,
+                fecha = fecha,
                 id_cliente = id_cliente,
                 id_encargado = id_encargado,
             };

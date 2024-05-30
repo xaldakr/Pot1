@@ -27,7 +27,7 @@ namespace Pot1_API.Controllers
                           join r in _Contexto.Roles on u.id_rol equals r.id_rol
                           join tr in _Contexto.Tipos_Rol on r.tipo_rol equals tr.id_tipo_rol
                           join t in _Contexto.Tickets on u.id_usuario equals t.id_encargado into ticketGroup
-                          where tr.nombre == "Soporte"
+                          where tr.id_tipo_rol != 1
                           select new
                           {
                               id_usuario = u.id_usuario,
@@ -232,7 +232,7 @@ namespace Pot1_API.Controllers
 
             return Ok(nuevoUsuario);
         }
-        [HttpPut]
+        [HttpPatch]
         [Route("EditarUsuario/{id_usuario}")]
         public IActionResult EditarUsuario(int id_usuario, [FromBody] JObject usuarioJson)
         {

@@ -54,12 +54,19 @@ namespace Pot1_API.Controllers
         ///APARTADO DE TAREAS
         [HttpGet]
         [Route("ObtenerTareas/{id}")]
-        public IActionResult ObtenerTarea(int id)
+        public IActionResult ObtenerTarea(int id, [FromQuery] int idticket = -1)
         {
             var listareas =(from t in _Contexto.Tareas
                             where t.id_encargado == id && t.completada == false
                             select t).ToList();
-            if(listareas.Count == 0)
+            var listareas1 = listareas;
+            if (idticket!= -1)
+            {
+                listareas1 = (from l in listareas
+                              where l.id_ticket == idticket
+                              select l).ToList();
+            }
+            if(listareas1.Count == 0)
             {
                 return NotFound("No se han encontrado tareas");
             }
@@ -136,7 +143,7 @@ namespace Pot1_API.Controllers
             enviocorreo.EnviarComentarioTicketCorreo(usuario.email, id_ticket, "Sistema de Notificaciones Autogeneradas", ticket.servicio, notificacion.dato, "");
             return Ok("Tarea creada exitosamente.");
         }
-        [HttpPut]
+        [HttpPatch]
         [Route("RechazarTarea/{id_tarea}")]
         public IActionResult RechazarTarea(int id_tarea)
         {
@@ -171,7 +178,7 @@ namespace Pot1_API.Controllers
             enviocorreo.EnviarRechazoTareaCorreo(duenotarea.email, encargado.nombre + " " + encargado.apellido, tarea.nombre, tarea.id_ticket, ticket.servicio);
             return Ok("Encargado de la tarea eliminado exitosamente.");
         }
-        [HttpPut]
+        [HttpPatch]
         [Route("AsignarTarea/{id_tarea}")]
         public IActionResult AsignarTarea(int id_tarea, [FromBody] JObject asignacionJson)
         {
