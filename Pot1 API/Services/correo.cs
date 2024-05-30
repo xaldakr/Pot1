@@ -20,7 +20,8 @@ namespace Pot1_API.Services
                                   "@profile_name = 'SQLMailPot1', " +
                                   "@recipients = @par_destinatarios, " +
                                   "@subject = @par_asunto, " +
-                                  "@body = @par_mensaje;";
+                                  "@body = @par_mensaje, " +
+                                  "@body_format = 'HTML';";
 
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
