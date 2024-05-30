@@ -18,7 +18,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("reactVite", policyBuilder =>
     {
-        policyBuilder.WithOrigins("http://localhost:5173");
+        policyBuilder.AllowAnyOrigin();
         policyBuilder.AllowAnyOrigin();
         policyBuilder.AllowAnyMethod();
     });
