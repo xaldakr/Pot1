@@ -81,8 +81,9 @@ namespace Pot1_API.Controllers
             }
 
         }
+        [HttpGet]
         [Route("ObtenerTecnicos")]
-        public IActionResult GetUsers([FromQuery] string busqueda = "")
+        public IActionResult GetTecnicos([FromQuery] string busqueda = "")
         {
             if (busqueda == null)
             {
