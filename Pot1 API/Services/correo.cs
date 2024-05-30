@@ -62,6 +62,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
@@ -111,6 +113,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
@@ -156,6 +160,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
@@ -198,6 +204,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
@@ -244,6 +252,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
@@ -297,6 +307,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
@@ -354,6 +366,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
@@ -409,6 +423,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
@@ -466,6 +482,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
@@ -524,6 +542,8 @@ namespace Pot1_API.Services
                             background-color: #D3DCE5;
                             padding: 20px;
                             font-family: Arial, sans-serif;
+                            font-size: 18px;
+                            text-align: center;
                             color: black;
                         }}
                         .highlight {{
