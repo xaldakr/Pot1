@@ -19,7 +19,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("reactVite", policyBuilder =>
     {
         policyBuilder.AllowAnyOrigin();
-        policyBuilder.AllowAnyOrigin();
+        policyBuilder.AllowAnyHeader();
         policyBuilder.AllowAnyMethod();
     });
 });
