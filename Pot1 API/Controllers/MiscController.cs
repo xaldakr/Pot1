@@ -56,17 +56,17 @@ namespace Pot1_API.Controllers
         [Route("ObtenerTareas/{id}")]
         public IActionResult ObtenerTarea(int id, [FromQuery] int idticket = -1)
         {
-            var listareas =(from t in _Contexto.Tareas
-                            where t.id_encargado == id && t.completada == false
-                            select t).ToList();
+            var listareas = (from t in _Contexto.Tareas
+                             where t.id_encargado == id && t.completada == false
+                             select t).ToList();
             var listareas1 = listareas;
-            if (idticket!= -1)
+            if (idticket != -1)
             {
                 listareas1 = (from l in listareas
                               where l.id_ticket == idticket
                               select l).ToList();
             }
-            if(listareas1.Count == 0)
+            if (listareas1.Count == 0)
             {
                 return NotFound("No se han encontrado tareas");
             }
@@ -85,7 +85,7 @@ namespace Pot1_API.Controllers
             string info = tareaJson.Value<string>("info");
             string prioridad = tareaJson.Value<string>("prioridad");
             int id_ticket = tareaJson.Value<int>("id_ticket");
-            int id_encargado = tareaJson.Value<int>("id_encargado"); 
+            int id_encargado = tareaJson.Value<int>("id_encargado");
 
             // Validar que la prioridad y el estado sean válidos
             var prioridadesValidas = new List<string> { "BAJA", "NORMAL", "IMPORTANTE", "CRÍTICA" };
@@ -105,7 +105,7 @@ namespace Pot1_API.Controllers
             {
                 return NotFound("No existe el encargado.");
             }
-            var tipo_encargado = _Contexto.Roles.FirstOrDefault(tr => tr.tipo_rol != 1  && tr.id_rol == encargado.id_rol);
+            var tipo_encargado = _Contexto.Roles.FirstOrDefault(tr => tr.tipo_rol != 1 && tr.id_rol == encargado.id_rol);
             if (tipo_encargado == null)
             {
                 return BadRequest("No se puede asignar una tarea a un cliente.");
@@ -121,12 +121,12 @@ namespace Pot1_API.Controllers
                 id_ticket = id_ticket,
                 id_encargado = id_encargado
             };
-            
+
             _Contexto.Tareas.Add(nuevaTarea);
             _Contexto.SaveChanges();
             Notificacion notificacion = new Notificacion
             {
-                dato = "Se ha creado y asignado la tarea " + nuevaTarea.nombre+" al soporte " + encargado.nombre + " "+ encargado.apellido,
+                dato = "Se ha creado y asignado la tarea " + nuevaTarea.nombre + " al soporte " + encargado.nombre + " " + encargado.apellido,
                 url_archivo = "No existente",
                 notificar_cliente = true,
                 remitente = null,
@@ -166,7 +166,7 @@ namespace Pot1_API.Controllers
             _Contexto.SaveChanges();
             Notificacion notificacion = new Notificacion
             {
-                dato = "El soporte "+ encargado.nombre + " " + encargado.apellido + " ha rechazado la tarea " + tarea.nombre + "."  ,
+                dato = "El soporte " + encargado.nombre + " " + encargado.apellido + " ha rechazado la tarea " + tarea.nombre + ".",
                 url_archivo = "No existente",
                 notificar_cliente = false,
                 remitente = null,
@@ -221,7 +221,17 @@ namespace Pot1_API.Controllers
             enviocorreo.EnviarAsignacionTareaCorreo(usuario.email, tarea.nombre, tarea.prioridad, tarea.id_ticket, ticket.servicio);
             return Ok("Encargado asignado a la tarea exitosamente.");
         }
+        [HttpPatch]
+        [Route("AsignarTarea/{id_tarea}")]
+        public IActionResult EditarTarea(int id_tarea, [FromBody] JObject datedit)
+        {
+            bool idEncargado = datedit.Value<bool>("completada");
+            string estado = datedit.Value<string>("estado");
 
-    }
+            var tarea = (from t in _Contexto.Tareas
+                         where t.id_tarea = id_tarea
+                         select)
+        }
+    } 
 
 }

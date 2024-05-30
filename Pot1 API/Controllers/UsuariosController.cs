@@ -149,6 +149,9 @@ namespace Pot1_API.Controllers
                              {
                                  id_usuario = u.id_usuario,
                                  tipo = tr.id_tipo_rol,
+                                 nombre = u.nombre + " " + u.apellido,
+                                 telefono = u.telefono,
+                                 correo = u.email
                              }).FirstOrDefault();
             if (datologin == null)
             {
