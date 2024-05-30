@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Firebase.Auth;
+using Firebase.Storage;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 using Pot1_API.Models;
 using Pot1_API.Services;
+using System.Net.Sockets;
 
 namespace Pot1_API.Controllers
 {
@@ -130,6 +134,7 @@ namespace Pot1_API.Controllers
                 url_archivo = "No existente",
                 notificar_cliente = true,
                 remitente = null,
+                fecha = DateTime.Now,
                 id_ticket = id_ticket,
             };
             _Contexto.Notificaciones.Add(notificacion);
@@ -170,6 +175,7 @@ namespace Pot1_API.Controllers
                 url_archivo = "No existente",
                 notificar_cliente = false,
                 remitente = null,
+                fecha = DateTime.Now,
                 id_ticket = tarea.id_ticket,
             };
             _Contexto.Notificaciones.Add(notificacion);
@@ -213,6 +219,7 @@ namespace Pot1_API.Controllers
                 url_archivo = "No existente",
                 notificar_cliente = false,
                 remitente = null,
+                fecha = DateTime.Now,
                 id_ticket = tarea.id_ticket,
             };
             _Contexto.Notificaciones.Add(notificacion);
@@ -225,12 +232,110 @@ namespace Pot1_API.Controllers
         [Route("AsignarTarea/{id_tarea}")]
         public IActionResult EditarTarea(int id_tarea, [FromBody] JObject datedit)
         {
-            bool idEncargado = datedit.Value<bool>("completada");
+            bool completada = datedit.Value<bool>("completada");
             string estado = datedit.Value<string>("estado");
 
             var tarea = (from t in _Contexto.Tareas
-                         where t.id_tarea = id_tarea
-                         select)
+                         where t.id_tarea == id_tarea
+                         select t).FirstOrDefault();
+            var ticket = _Contexto.Tickets.FirstOrDefault(t => t.id_ticket == tarea.id_ticket);
+            var encargado = _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == ticket.id_encargado);
+            var cliente = _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == ticket.id_cliente);
+            var ejecutor = _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == tarea.id_encargado);
+            if (tarea == null)
+            {
+                return NotFound("No ha encontrado la tarea");
+            }
+            tarea.estado = estado;
+            tarea.completada = completada;
+            _Contexto.SaveChanges();
+
+            correo enviocorreo = new correo(_configuration);
+            if(encargado.id_usuario != ejecutor.id_usuario)
+            {
+                enviocorreo.EnviarCambioEstadoTareaCorreo(encargado.email, ticket.id_ticket, ejecutor.nombre + " " + ejecutor.apellido, tarea.info, ticket.servicio, estado, completada);
+            }
+            if (completada)
+            {
+                enviocorreo.EnviarCambioEstadoTareaCorreo(cliente.email, ticket.id_ticket, ejecutor.nombre + " " + ejecutor.apellido, tarea.info, ticket.servicio, estado, completada);
+            }
+            return Ok(tarea);
+        }
+        [HttpPost]
+        [Route("Comentar/{id_ticket}")]
+        public async Task<IActionResult> Comentar(int id_ticket)
+        {
+            var form = await Request.ReadFormAsync();
+            string dato = form["dato"];
+            int? id_remitente = form["id_remitente"].IsNullOrEmpty()? null:int.Parse(form["id_remitente"]);
+            bool notificar_cliente = Boolean.Parse(form["notificar_cliente"]);
+
+            // Obtener el archivo (si hay alguno)
+            IFormFile archivo = form.Files.FirstOrDefault();
+
+            // Verificar si el archivo fue enviado
+            bool archivoEnviado = archivo != null;
+            string urlArchivoCargado = "";
+            //Si fue enviado, hacer lo de firebase
+            if (archivoEnviado)
+            {
+                //Datos de FB
+                try
+                {
+                    Stream archivoASubir = archivo.OpenReadStream();
+                    string emailFB = "pot1tickets@gmail.com";
+                    string claveFB = "merequetengue";
+                    string rutaFB = "pot1-tickets.appspot.com";
+                    string ApiKeyFB = "AIzaSyApIl4UPhpZWOa8xchSMAP5ZjbCTwppF6I";
+
+                    var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKeyFB));
+                    var autentificarFB = await auth.SignInWithEmailAndPasswordAsync(emailFB, claveFB);
+
+                    var cancellation = new CancellationTokenSource();
+                    var tokenUser = autentificarFB.FirebaseToken;
+
+                    var tareaCargarArchivo = new FirebaseStorage(rutaFB, new FirebaseStorageOptions
+                    {
+                        AuthTokenAsyncFactory = () => Task.FromResult(tokenUser),
+                        ThrowOnCancel = true
+                    }).Child("Archivos")
+                          .Child(archivo.FileName)
+                          .PutAsync(archivoASubir, cancellation.Token);
+                    var archivoCargado = await tareaCargarArchivo;
+
+                    urlArchivoCargado = archivoCargado.ToString();
+
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+
+            }
+            if(urlArchivoCargado == "")
+            {
+                urlArchivoCargado = "No existente";
+            }
+            var usuario = (from u in _Contexto.Usuarios
+                           join t in _Contexto.Tickets on u.id_usuario equals t.id_cliente
+                           select u).FirstOrDefault();
+            var ticket = _Contexto.Tickets.FirstOrDefault(t => t.id_ticket == id_ticket);
+            Notificacion notificacion = new Notificacion
+            {
+                dato = dato,
+                url_archivo = urlArchivoCargado,
+                notificar_cliente = notificar_cliente,
+                fecha = DateTime.Now,
+                remitente = id_remitente,
+                id_ticket = id_ticket,
+            };
+
+            _Contexto.Notificaciones.Add(notificacion);
+            _Contexto.SaveChanges();
+            string arc = urlArchivoCargado == "No existente" ? "" : urlArchivoCargado;
+            correo enviocorreo = new correo(_configuration);
+            enviocorreo.EnviarComentarioTicketCorreo(usuario.email, id_ticket, "Sistema de Notificaciones Autogeneradas", ticket.servicio, notificacion.dato, arc);
+
         }
     } 
 

@@ -525,6 +525,7 @@ namespace Pot1_API.Controllers
                 dato = nuevoEstado == "RESUELTO"? "El ticket se ha cerrado":"Estado del ticket cambiado a " + nuevoEstado,
                 url_archivo = "No existente",
                 notificar_cliente = true,
+                fecha = DateTime.Now,
                 remitente = idEjecutor,
                 id_ticket = id_ticket,
             };
@@ -594,6 +595,7 @@ namespace Pot1_API.Controllers
                 url_archivo = "No existente",
                 notificar_cliente = true,
                 remitente = null,
+                fecha = DateTime.Now,
                 id_ticket = id_ticket,
             };
 
