@@ -64,6 +64,9 @@ namespace Pot1_API.Controllers
                                 {
                                     id_usuario =u.id_usuario,
                                     nombre = u.nombre + " " + u.apellido,
+                                    nom = u.nombre,
+                                    ape = u.apellido,
+                                    contacto = u.tel_contacto,
                                     email = u.email,
                                     telefono = u.telefono
                                 }).OrderByDescending(res => res.nombre).ToList();
