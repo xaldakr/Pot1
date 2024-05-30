@@ -229,7 +229,7 @@ namespace Pot1_API.Controllers
             return Ok("Encargado asignado a la tarea exitosamente.");
         }
         [HttpPatch]
-        [Route("AsignarTarea/{id_tarea}")]
+        [Route("EditarTarea/{id_tarea}")]
         public IActionResult EditarTarea(int id_tarea, [FromBody] JObject datedit)
         {
             bool completada = datedit.Value<bool>("completada");
