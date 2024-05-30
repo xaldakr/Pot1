@@ -335,7 +335,7 @@ namespace Pot1_API.Controllers
             string arc = urlArchivoCargado == "No existente" ? "" : urlArchivoCargado;
             correo enviocorreo = new correo(_configuration);
             enviocorreo.EnviarComentarioTicketCorreo(usuario.email, id_ticket, "Sistema de Notificaciones Autogeneradas", ticket.servicio, notificacion.dato, arc);
-
+            return Ok(notificacion);
         }
     } 
 
