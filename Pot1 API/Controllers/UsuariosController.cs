@@ -203,7 +203,7 @@ namespace Pot1_API.Controllers
             }
 
             // Verificar la capacidad del rol
-            var rol = _Contexto.Roles.Include(r => r.tipo_rol).FirstOrDefault(r => r.id_rol == idRol);
+            var rol = (from r in _Contexto.Roles where r.id_rol == idRol select r).FirstOrDefault();
             if (rol == null)
             {
                 return NotFound("El rol especificado no existe.");
