@@ -90,7 +90,6 @@ namespace Pot1_API.Controllers
                 busqueda = "";
             }
 
-            //Tipo debe ser dependiendo al rol que se esté agarrando, es decir, se debe comprobar que exista en una lista
             var roles = (from r in _Contexto.Roles
                          select r.tipo_rol).ToList();
             if (roles.Contains(2))
@@ -150,7 +149,7 @@ namespace Pot1_API.Controllers
                              {
                                  id_usuario = u.id_usuario,
                                  tipo = tr.id_tipo_rol,
-                             });
+                             }).FirstOrDefault();
             if (datologin == null)
             {
                 return NotFound("No se han encontrado datos");
@@ -231,7 +230,7 @@ namespace Pot1_API.Controllers
             correo enviarbienvenida = new correo(_configuration);
             enviarbienvenida.EnviarBienvenidaUsuarioCorreo(email, rol.nombre, nombre, apellido, telefono, telContacto, email, contrasena);
 
-            return Ok("Usuario creado exitosamente.");
+            return Ok(nuevoUsuario);
         }
         [HttpPut]
         [Route("EditarUsuario/{id_usuario}")]

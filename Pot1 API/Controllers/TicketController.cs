@@ -134,6 +134,58 @@ namespace Pot1_API.Controllers
         }
 
         [HttpGet]
+        [Route("ObtenerPorFiltro/{id}")]
+        public IActionResult GetFiltro(int id)
+        {
+
+            //el id es como lo siguiente
+            //1 es categoria o servicio
+            //2 es por fecha
+            //3 es por nombre del encargado
+            //4 es por nombre del cliente
+
+            var listicket1 = (from e in _Contexto.Tickets
+                             join c in _Contexto.Usuarios
+                             on e.id_cliente equals c.id_usuario
+                             join em in _Contexto.Usuarios on e.id_encargado equals em.id_usuario into emJoin
+                             from em in emJoin.DefaultIfEmpty() where !e.estado.Contains("RESUELTO")
+                             select new
+                             {
+                                 Id = e.id_ticket,
+                                 Servicio = e.servicio,
+                                 FechaDate = e.fecha,
+                                 Fecha = e.fecha.ToString("dd/MMMM/yyyy"),
+                                 Estado = e.estado,
+                                 Cliente = c.nombre + " " + c.apellido,
+                                 Empleado = em == null ? null : em.nombre + " " + em.apellido,
+                                 Correo = c.email,
+                             }).OrderByDescending(res => res.FechaDate).ToList();
+            var listicket = listicket1;
+            switch (id)
+            {
+                case 1:
+                    listicket = listicket1.OrderByDescending(res => res.Servicio).ToList(); 
+                    break;
+                case 2:
+                    listicket = listicket1.OrderByDescending(res => res.FechaDate).ToList();
+                    break;
+                case 3:
+                    listicket = listicket1.OrderByDescending(res => res.Empleado).ToList();
+                    break;
+                case 4:
+                    listicket = listicket1.OrderByDescending(res => res.Cliente).ToList();
+                    break;
+                default:
+                    break;
+            }
+            if (listicket.Count == 0)
+            {
+                return NotFound("No se han encontrado tickets");
+            }
+            return Ok(listicket);
+        }
+
+        [HttpGet]
         [Route("ObtenerPorEncargado/{id}")]
         public IActionResult GetEncar(int id)
         {
@@ -261,6 +313,7 @@ namespace Pot1_API.Controllers
                                     Archivos = _Contexto.Archivos.Where(a => a.id_ticket == id_ticket).Select(a => a.url).ToList(),
                                     Tareas = _Contexto.Tareas.Where(tr => tr.id_ticket == id_ticket).Select(tr => new
                                     {
+                                        tr.id_tarea,
                                         tr.nombre,
                                         tr.prioridad,
                                         tr.info,
@@ -305,6 +358,7 @@ namespace Pot1_API.Controllers
                                     Archivos = _Contexto.Archivos.Where(a => a.id_ticket == id_ticket).Select(a => a.url).ToList(),
                                     Tareas = _Contexto.Tareas.Where(tr => tr.id_ticket == id_ticket).Select(tr => new
                                     {
+                                        tr.id_tarea,
                                         tr.nombre,
                                         tr.prioridad,
                                         tr.info,
@@ -433,7 +487,7 @@ namespace Pot1_API.Controllers
             var usuarioEjecutor = _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == idEjecutor);
             if (usuarioEjecutor == null)
             {
-                return BadRequest("Usuario ejecutor no encontrado.");
+                return BadRequest("Aún no se ha asignado un técnico para editar su estado");
             }
 
             bool esEncargado = ticket.id_encargado == idEjecutor;
@@ -465,8 +519,20 @@ namespace Pot1_API.Controllers
             ticket.resuelta = nuevoEstado == "RESUELTO";
             _Contexto.SaveChanges();
 
+            Notificacion notificacion = new Notificacion {
+                dato = nuevoEstado == "RESUELTO"? "El ticket se ha cerrado":"Estado del ticket cambiado a " + nuevoEstado,
+                url_archivo = "No existente",
+                notificar_cliente = true,
+                remitente = idEjecutor,
+                id_ticket = id_ticket,
+            };
+
+            _Contexto.Notificaciones.Add(notificacion);
+            _Contexto.SaveChanges();
+
             var usuario = (from t in _Contexto.Tickets
-                           join u in _Contexto.Usuarios on t.id_cliente equals u.id_usuario select u).FirstOrDefault();
+                           join u in _Contexto.Usuarios on t.id_cliente equals u.id_usuario 
+                           where t.id_ticket == id_ticket select u).FirstOrDefault();
             correo enviocorreo = new correo(_configuration);
             if (nuevoEstado == "RESUELTO")
             {
@@ -479,7 +545,67 @@ namespace Pot1_API.Controllers
 
             return Ok("Estado del ticket actualizado exitosamente.");
         }
+        [HttpPut]
+        [Route("AsignarSoporte/{id_ticket}")]
+        public IActionResult AsignarSoporte(int id_ticket, [FromBody] JObject asignacionJson)
+        {
+            int idSoporte = asignacionJson.Value<int>("id_soporte");
 
+            // Verificar que el usuario sea un soporte
+            var usuarioSoporte = (from u in _Contexto.Usuarios
+                                  join r in _Contexto.Roles on u.id_rol equals r.id_rol
+                                  where r.id_rol == 2 && u.id_usuario == idSoporte
+                                  select new
+                                  {
+                                      id_rol = r.id_rol,
+                                      correo = u.email,
+                                      nombre = u.nombre + " " +u.apellido,
+                                  }).FirstOrDefault();
+            if (usuarioSoporte == null)
+            {
+                return BadRequest("Usuario de soporte no encontrado.");
+            }
+
+            // Obtener el ticket de la base de datos
+            var ticket = _Contexto.Tickets.FirstOrDefault(t => t.id_ticket == id_ticket);
+            if (ticket == null)
+            {
+                return NotFound("Ticket no encontrado.");
+            }
+
+            // Verificar que el ticket no tenga ya un encargado asignado
+            if (ticket.id_encargado != null)
+            {
+                return BadRequest("El ticket ya tiene un encargado asignado.");
+            }
+
+            // Asignar el ID de soporte y cambiar el estado del ticket
+            ticket.id_encargado = idSoporte;
+            ticket.estado = "ASIGNADO";
+
+            
+            _Contexto.SaveChanges();
+
+            Notificacion notificacion = new Notificacion
+            {
+                dato = "Se ha asignado el ticket al soporte " + usuarioSoporte.nombre,
+                url_archivo = "No existente",
+                notificar_cliente = true,
+                remitente = null,
+                id_ticket = id_ticket,
+            };
+
+            _Contexto.Notificaciones.Add(notificacion);
+            _Contexto.SaveChanges();
+            var usuario = (from t in _Contexto.Tickets
+                           join u in _Contexto.Usuarios on t.id_cliente equals u.id_usuario
+                           where t.id_ticket == id_ticket
+                           select u).FirstOrDefault();
+            correo enviocorreo = new correo(_configuration);
+            enviocorreo.EnviarAsignacionTicketCorreo(usuarioSoporte.correo, ticket.id_ticket, ticket.servicio, ticket.prioridad);
+            enviocorreo.EnviarCambioEstadoTicketCorreo(usuario.email, ticket.id_ticket, ticket.servicio, "ASIGNADO");
+            return Ok("Soporte asignado al ticket exitosamente.");
+        }
 
     }
 }
