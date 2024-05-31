@@ -552,7 +552,7 @@ namespace Pot1_API.Controllers
 
             return Ok("Estado del ticket actualizado exitosamente.");
         }
-        [HttpPut]
+        [HttpPatch]
         [Route("AsignarSoporte/{id_ticket}")]
         public IActionResult AsignarSoporte(int id_ticket, [FromBody] JObject asignacionJson)
         {
