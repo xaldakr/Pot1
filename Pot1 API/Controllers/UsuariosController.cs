@@ -307,7 +307,7 @@ namespace Pot1_API.Controllers
 
             if (usuarioJson.TryGetValue("IdRol", out JToken idRolToken) && int.TryParse(idRolToken.ToString(), out int idRol))
             {
-                var rol = _Contexto.Roles.Include(r => r.tipo_rol).FirstOrDefault(r => r.id_rol == idRol);
+                var rol = _Contexto.Roles.FirstOrDefault(r => r.id_rol == idRol);
                 if (rol == null)
                 {
                     return NotFound("El rol especificado no existe.");
@@ -323,9 +323,9 @@ namespace Pot1_API.Controllers
             }
 
             _Contexto.SaveChanges();
-
+            var elrol = _Contexto.Roles.FirstOrDefault(r => r.id_rol == usuarioExistente.id_rol);
             correo enviarbcambio = new correo(_configuration);
-            enviarbcambio.EnviarCambioDatosIngresoCorreo(usuarioExistente.email, usuarioExistente.Rol.nombre, usuarioExistente.nombre, usuarioExistente.apellido, usuarioExistente.telefono, usuarioExistente.tel_contacto, usuarioExistente.email, usuarioExistente.contrasena);
+            enviarbcambio.EnviarCambioDatosIngresoCorreo(usuarioExistente.email, elrol.nombre, usuarioExistente.nombre, usuarioExistente.apellido, usuarioExistente.telefono, usuarioExistente.tel_contacto, usuarioExistente.email, usuarioExistente.contrasena);
 
             return Ok("Usuario actualizado exitosamente.");
         }
