@@ -68,7 +68,8 @@ namespace Pot1_API.Controllers
                                     ape = u.apellido,
                                     contacto = u.tel_contacto,
                                     email = u.email,
-                                    telefono = u.telefono
+                                    telefono = u.telefono,
+                                    id_rol = u.id_rol
                                 }).OrderByDescending(res => res.nombre).ToList();
                 if(usuarios.Count == 0)
                 {
@@ -105,6 +106,9 @@ namespace Pot1_API.Controllers
                                 {
                                     id_usuario = u.id_usuario,
                                     nombre = u.nombre + " " + u.apellido,
+                                    nom = u.nombre,
+                                    ape = u.apellido,
+                                    contacto = u.tel_contacto,
                                     email = u.email,
                                     telefono = u.telefono
                                 }).OrderByDescending(res => res.nombre).ToList();
