@@ -398,6 +398,10 @@ namespace Pot1_API.Controllers
             // Obtener el archivo (si hay alguno)
             IFormFile archivo = form.Files.FirstOrDefault();
 
+            if (descripcion.IsNullOrEmpty() || servicio.IsNullOrEmpty())
+            {
+                return BadRequest("Debe haber datos en la descripción y servicio");
+            }
             // Verificar si el archivo fue enviado
             bool archivoEnviado = archivo != null;
             string urlArchivoCargado = "";
