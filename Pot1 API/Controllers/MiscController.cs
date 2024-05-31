@@ -52,7 +52,25 @@ namespace Pot1_API.Controllers
             };
             return Ok(prios);
         }
-
+        [HttpGet]
+        [Route("ObtenerTiposTicket")]
+        public IActionResult GetTtick()
+        {
+            int numabier = (from t in _Contexto.Tickets
+                            where t.estado.Contains("CREADO") select t).Count();
+            int numenprog = (from t in _Contexto.Tickets
+                             where !t.estado.Contains("RESUELTO") && !t.estado.Contains("CREADO")
+                             select t).Count();
+            int numcerrado = (from t in _Contexto.Tickets
+                              where t.estado.Contains("RESUELTO")
+                              select t).Count();
+            return Ok(new
+            {
+                noabiertos = numabier,
+                noprogreso = numenprog,
+                nocerrados = numcerrado
+            });
+        }
 
 
         ///APARTADO DE TAREAS
