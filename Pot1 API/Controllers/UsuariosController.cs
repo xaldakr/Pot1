@@ -247,7 +247,7 @@ namespace Pot1_API.Controllers
         public IActionResult EditarUsuario(int id_usuario, [FromBody] JObject usuarioJson)
         {
             // Obtener el usuario existente de la base de datos
-            var usuarioExistente = _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == id_usuario);
+            var usuarioExistente = _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == id_usuario);  
             if (usuarioExistente == null)
             {
                 return NotFound("El usuario especificado no existe.");
