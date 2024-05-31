@@ -75,9 +75,11 @@ namespace Pot1_API.Controllers
 
         ///APARTADO DE TAREAS
         [HttpGet]
-        [Route("ObtenerTareas/{id}")]
-        public IActionResult ObtenerTarea(int id, [FromQuery] int idticket = -1)
+        [Route("ObtenerTareas/{id}/{tipo}")]
+        public IActionResult ObtenerTarea(int id, [FromQuery] int idticket = -1, int tipo = 0)
         {
+            //tipo 1 no resueltos
+            //tipo 2 resueltos
             var listareas = (from t in _Contexto.Tareas
                              where t.id_encargado == id && t.completada == false
                              select t).ToList();
@@ -86,6 +88,16 @@ namespace Pot1_API.Controllers
             {
                 listareas1 = (from l in listareas
                               where l.id_ticket == idticket
+                              select l).ToList();
+            }
+            if(tipo == 1)
+            {
+                listareas1 = ( from l in listareas1
+                               where l.completada == false select l).ToList();
+            } else if (tipo == 2)
+            {
+                listareas1 = (from l in listareas1
+                              where l.completada == true
                               select l).ToList();
             }
             if (listareas1.Count == 0)
@@ -181,6 +193,10 @@ namespace Pot1_API.Controllers
             {
                 return BadRequest("Ejecución innecesaria.");
             }
+            if (tarea.completada == true)
+            {
+                return BadRequest("Ejecución innecesaria.");
+            }
             // Eliminar el encargado de la tarea
             tarea.id_encargado = null;
             var ticket = _Contexto.Tickets.FirstOrDefault(t => t.id_ticket == tarea.id_ticket);
@@ -225,7 +241,10 @@ namespace Pot1_API.Controllers
             {
                 return NotFound("Tarea no encontrada.");
             }
-
+            if (tarea.completada == true)
+            {
+                return BadRequest("Ejecución innecesaria.");
+            }
             // Asignar el encargado a la tarea
             tarea.id_encargado = idEncargado;
             var ticket = _Contexto.Tickets.FirstOrDefault(t => t.id_ticket == tarea.id_ticket);
@@ -263,6 +282,10 @@ namespace Pot1_API.Controllers
             if (tarea == null)
             {
                 return NotFound("No ha encontrado la tarea");
+            }
+            if (tarea.completada == true)
+            {
+                return BadRequest("Imposible editar una tarea ya finalizada.");
             }
             tarea.estado = estado;
             tarea.completada = completada;

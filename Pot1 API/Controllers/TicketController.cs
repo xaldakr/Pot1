@@ -186,15 +186,17 @@ namespace Pot1_API.Controllers
         }
 
         [HttpGet]
-        [Route("ObtenerPorEncargado/{id}")]
-        public IActionResult GetEncar(int id)
+        [Route("ObtenerPorEncargado/{id}/{tipo}")]
+        public IActionResult GetEncar(int id, int tipo = 0)
         {
+            //tipo 1 Sin resolver
+            //tipo 2 Resueltos
             var listicket = (from e in _Contexto.Tickets
                              join c in _Contexto.Usuarios
                              on e.id_cliente equals c.id_usuario
                              join em in _Contexto.Usuarios
                              on e.id_encargado equals em.id_usuario
-                             where em.id_usuario == id && !e.estado.Contains("RESUELTO")
+                             where em.id_usuario == id 
                              select new
                              {
                                  Id = e.id_ticket,
@@ -206,6 +208,16 @@ namespace Pot1_API.Controllers
                                  Empleado = em.nombre + " " + em.apellido,
                                  Correo = c.email,
                              }).OrderByDescending(res => res.FechaDate).ToList();
+            if(tipo == 1)
+            {
+                listicket = (from e in listicket
+                             where !e.Estado.Contains("RESUELTO")
+                             select e).OrderByDescending(res => res.FechaDate).ToList();
+            } else if(tipo == 2) {
+                listicket = (from e in listicket
+                             where e.Estado.Contains("RESUELTO")
+                             select e).OrderByDescending(res => res.FechaDate).ToList();
+            }
             if (listicket.Count == 0)
             {
                 return NotFound("No se han encontrado tickets");
