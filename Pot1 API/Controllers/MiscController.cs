@@ -375,6 +375,7 @@ namespace Pot1_API.Controllers
             }
             var usuario = (from u in _Contexto.Usuarios
                            join t in _Contexto.Tickets on u.id_usuario equals t.id_cliente
+                           where t.id_ticket == id_ticket
                            select u).FirstOrDefault();
             var ticket = _Contexto.Tickets.FirstOrDefault(t => t.id_ticket == id_ticket);
             Notificacion notificacion = new Notificacion
