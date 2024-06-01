@@ -124,7 +124,7 @@ namespace Pot1_API.Controllers
             }
             else
             {
-                return Ok(listareas);
+                return Ok(listareas1);
             }
         }
 
