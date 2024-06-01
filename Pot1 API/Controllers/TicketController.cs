@@ -327,7 +327,7 @@ namespace Pot1_API.Controllers
                                     Estado = t.estado,
                                     Prioridad = t.prioridad,
                                     Descripcion = t.descripcion,
-                                    Fecha = t.fecha,
+                                    Fecha = t.fecha.ToString("dd/MMMM/yyyy"),
                                     Encargado = e == null ? null : e.nombre + " " + e.apellido,
                                     Archivos = _Contexto.Archivos.Where(a => a.id_ticket == id_ticket).Select(a => a.url).ToList(),
                                     Tareas = _Contexto.Tareas.Where(tr => tr.id_ticket == id_ticket).Select(tr => new
@@ -372,7 +372,7 @@ namespace Pot1_API.Controllers
                                     Estado = t.estado,
                                     Prioridad = t.prioridad,
                                     Descripcion = t.descripcion,
-                                    Fecha = t.fecha,
+                                    Fecha = t.fecha.ToString("dd/MMMM/yyyy"),,
                                     Encargado = e == null ? null : e.nombre + " " + e.apellido,
                                     Archivos = _Contexto.Archivos.Where(a => a.id_ticket == id_ticket).Select(a => a.url).ToList(),
                                     Tareas = _Contexto.Tareas.Where(tr => tr.id_ticket == id_ticket).Select(tr => new
