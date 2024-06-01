@@ -101,7 +101,7 @@ namespace Pot1_API.Controllers
                 var usuarios = (from u in _Contexto.Usuarios
                                 join r in _Contexto.Roles
                                 on u.id_rol equals r.id_rol
-                                where r.tipo_rol == 2 && u.email.Contains(busqueda)
+                                where r.tipo_rol != 1 && u.email.Contains(busqueda)
                                 select new
                                 {
                                     id_usuario = u.id_usuario,
