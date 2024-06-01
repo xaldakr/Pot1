@@ -76,12 +76,14 @@ namespace Pot1_API.Controllers
         ///APARTADO DE TAREAS
         [HttpGet]
         [Route("ObtenerTareas/{id}/{tipo}")]
-        public IActionResult ObtenerTarea(int id, [FromQuery] int idticket = -1, int tipo = 0)
+        public IActionResult ObtenerTarea(int id, [FromQuery] int? idticket = -1, int? tipo = 0, [FromQuery] string? nombre = "")
         {
             //tipo 1 no resueltos
             //tipo 2 resueltos
+            idticket = idticket == null ? -1 : idticket;
+            nombre = nombre == null ? "" : nombre;
             var listareas = (from t in _Contexto.Tareas
-                             where t.id_encargado == id && t.completada == false
+                             where t.id_encargado == id && t.nombre.Contains(nombre)
                              select t).ToList();
             var listareas1 = listareas;
             if (idticket != -1)

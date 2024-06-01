@@ -187,7 +187,7 @@ namespace Pot1_API.Controllers
 
         [HttpGet]
         [Route("ObtenerPorEncargado/{id}/{tipo}")]
-        public IActionResult GetEncar(int id, int tipo = 0)
+        public IActionResult GetEncar(int id, int? tipo = 0)
         {
             //tipo 1 Sin resolver
             //tipo 2 Resueltos
