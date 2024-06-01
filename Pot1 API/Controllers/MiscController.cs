@@ -373,6 +373,9 @@ namespace Pot1_API.Controllers
             {
                 urlArchivoCargado = "No existente";
             }
+            var remitente = (from u in _Contexto.Usuarios
+                             where u.id_usuario == id_remitente
+                             select u).FirstOrDefault();
             var usuario = (from u in _Contexto.Usuarios
                            join t in _Contexto.Tickets on u.id_usuario equals t.id_cliente
                            where t.id_ticket == id_ticket
@@ -392,7 +395,7 @@ namespace Pot1_API.Controllers
             _Contexto.SaveChanges();
             string arc = urlArchivoCargado == "No existente" ? "" : urlArchivoCargado;
             correo enviocorreo = new correo(_configuration);
-            enviocorreo.EnviarComentarioTicketCorreo(usuario.email, id_ticket, "Sistema de Notificaciones Autogeneradas", ticket.servicio, notificacion.dato, arc);
+            enviocorreo.EnviarComentarioTicketCorreo(usuario.email, id_ticket, remitente.nombre + " " + remitente.apellido, ticket.servicio, notificacion.dato, arc);
             return Ok(notificacion);
         }
     } 
