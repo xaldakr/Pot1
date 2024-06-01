@@ -488,7 +488,7 @@ namespace Pot1_API.Controllers
 
             return Ok(new {id_ticket = nuevoTicket.id_ticket}); 
         }
-        [HttpPut]
+        [HttpPatch]
         [Route("EditarTicket/{id_ticket}")]
         public IActionResult EditarTicket(int id_ticket, [FromBody] JObject ticketJson)
         {
