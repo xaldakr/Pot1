@@ -344,7 +344,7 @@ namespace Pot1_API.Controllers
                                         Remitente = n.remitente == null ? (n.autogenerada ? "Autogenerada" : "Anonimo") : _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == n.remitente).nombre + " " + _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == n.remitente).apellido,
                                         n.dato,
                                         UrlArchivo = n.url_archivo == "No existente" ? null : n.url_archivo,
-                                        n.fecha
+                                        Fecha = n.fecha.ToString("dd/MMMM/yyyy")
                                     }).ToList()
                                 }).FirstOrDefault();
 
@@ -390,7 +390,7 @@ namespace Pot1_API.Controllers
                                         Remitente = n.remitente == null ? (n.autogenerada ? "Autogenerada" : "Anonimo") : _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == n.remitente).nombre + " " + _Contexto.Usuarios.FirstOrDefault(u => u.id_usuario == n.remitente).apellido,
                                         n.dato,
                                         UrlArchivo = n.url_archivo == "No existente" ? null : n.url_archivo,
-                                        n.fecha
+                                        Fecha = n.fecha.ToString("dd/MMMM/yyyy")
                                     }).ToList()
                                 }).FirstOrDefault();
 
