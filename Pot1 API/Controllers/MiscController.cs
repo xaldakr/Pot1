@@ -83,8 +83,22 @@ namespace Pot1_API.Controllers
             idticket = idticket == null ? -1 : idticket;
             nombre = nombre == null ? "" : nombre;
             var listareas = (from t in _Contexto.Tareas
+                             join ti in _Contexto.Tickets on t.id_ticket equals ti.id_ticket
+                             join c in _Contexto.Usuarios on ti.id_cliente equals c.id_usuario
                              where t.id_encargado == id && t.nombre.Contains(nombre)
-                             select t).ToList();
+                             select new
+                             {
+                                 id_tarea= t.id_tarea,
+                                 id_ticket = t.id_ticket,
+                                 id_encargado =t.id_encargado,
+                                 nombre= t.nombre,
+                                 info = t.info,
+                                 prioridad = t.prioridad,
+                                 estado = t.estado,
+                                 completada = t.completada,
+                                 servicio = ti.servicio,
+                                 cliente = c.nombre + " " + c.apellido
+                             }).ToList();
             var listareas1 = listareas;
             if (idticket != -1)
             {
