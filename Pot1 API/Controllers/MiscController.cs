@@ -85,12 +85,14 @@ namespace Pot1_API.Controllers
             var listareas = (from t in _Contexto.Tareas
                              join ti in _Contexto.Tickets on t.id_ticket equals ti.id_ticket
                              join c in _Contexto.Usuarios on ti.id_cliente equals c.id_usuario
+                             join e in _Contexto.Usuarios on ti.id_encargado equals e.id_usuario
                              where t.id_encargado == id && t.nombre.Contains(nombre)
                              select new
                              {
                                  id_tarea= t.id_tarea,
                                  id_ticket = t.id_ticket,
                                  id_encargado =t.id_encargado,
+                                 encargado = e.nombre+ " " + e.apellido, 
                                  nombre= t.nombre,
                                  info = t.info,
                                  prioridad = t.prioridad,
