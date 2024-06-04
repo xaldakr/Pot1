@@ -582,7 +582,7 @@ namespace Pot1_API.Controllers
             // Verificar que el usuario sea un soporte
             var usuarioSoporte = (from u in _Contexto.Usuarios
                                   join r in _Contexto.Roles on u.id_rol equals r.id_rol
-                                  where r.id_rol == 2 && u.id_usuario == idSoporte
+                                  where r.id_rol != 1 && u.id_usuario == idSoporte
                                   select new
                                   {
                                       id_rol = r.id_rol,
